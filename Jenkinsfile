@@ -52,10 +52,18 @@ pipeline {
         stage("Quality Gate") {
             steps {
                 script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'
+                    def qualityGate = waitForQualityGate(
+                        abortPipeline: false,
+                        credentialsId: 'jenkins-sonarqube-token',
+                        timeout: 10 * 60  // Timeout in seconds (10 minutes)
+                    )
+                    if (qualityGate.status != 'OK') {
+                        error "SonarQube Quality Gate failed: ${qualityGate.status}"
+                    }
                 }
             }
         }
+
 
         stage("Build & Push Docker Image") {
             steps {
